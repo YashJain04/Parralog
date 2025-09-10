@@ -24,10 +24,14 @@ endif()
 include_directories(src)
 
 # executable - analytics engine
-add_executable(hpcae/src/hpcae/main.cpp)
+add_executable(hpcae
+    src/hpcae/main.cpp
+)
 
 # executable - log generator
-add_executable(loggen/tools/generate.cpp)
+add_executable(loggen
+    tools/generate.cpp
+)
 
 # multi-threading using pthreads on non windows machine
 if (NOT MSVC)
