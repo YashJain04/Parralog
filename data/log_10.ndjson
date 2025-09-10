@@ -1,0 +1,10 @@
+{"ts":0,"service":"service_001","status":200,"latency_ms":10.0}
+{"ts":1,"service":"service_001","status":200,"latency_ms":10.0}
+{"ts":2,"service":"service_001","status":200,"latency_ms":10.0}
+{"ts":3,"service":"service_001","status":200,"latency_ms":10.0}
+{"ts":4,"service":"service_001","status":200,"latency_ms":10.0}
+{"ts":5,"service":"service_001","status":200,"latency_ms":10.0}
+{"ts":6,"service":"service_001","status":200,"latency_ms":10.0}
+{"ts":7,"service":"service_001","status":200,"latency_ms":10.0}
+{"ts":8,"service":"service_001","status":200,"latency_ms":10.0}
+{"ts":9,"service":"service_001","status":200,"latency_ms":10.0}
