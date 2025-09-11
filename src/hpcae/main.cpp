@@ -4,6 +4,7 @@
 #include <chrono>
 #include <limits>
 #include <unordered_map>
+#include <iomanip>
 
 int main(int argc, char* argv[]) {
     std::cout << "HPC Analytics Engine\n";
@@ -107,25 +108,33 @@ int main(int argc, char* argv[]) {
 
     int top_n_services = 3;
 
-    std::cout << "\n--METRICS SUMMARY REPORT--\n";
-    std::cout << "Processed " << total_events_processed << " events\n";
-    std::cout << "Average latency " << average_latency << " ms\n";
-    std::cout << "Throughput " << throughput << " events/sec\n";
-    std::cout << "Total " << total_errors << " errors\n";
-    std::cout << "Error Percentage " << error_percentage << " %\n";
-    std::cout << "Minimum Latency " << min_latency << " ms\n";
-    std::cout << "Maximum Latency " << max_latency << " ms\n";
-    std::cout << "Time Taken " << time_taken << " seconds\n";
-    std::cout << "Top Services:\n";
+    std::cout << "\n==============================\n";
+    std::cout << "     METRICS SUMMARY REPORT    \n";
+    std::cout << "==============================\n";
 
-    for (int i { 0 }; i < top_n_services; i++) {
-        std::cout << sorted_services[i].first << " → " << sorted_services[i].second << " events\n";
+    std::cout << "Events Processed : " << total_events_processed << "\n";
+    std::cout << "Errors           : " << total_errors 
+            << " (" << std::fixed << std::setprecision(2) << error_percentage << "%)\n\n";
+
+    std::cout << "Latency (ms):\n";
+    std::cout << "   Min        : " << std::fixed << std::setprecision(2) << min_latency << "\n";
+    std::cout << "   Max        : " << max_latency << "\n";
+    std::cout << "   Average    : " << average_latency << "\n";
+    std::cout << "   P50        : " << p50_latency << "\n";
+    std::cout << "   P95        : " << p95_latency << "\n";
+    std::cout << "   P99        : " << p99_latency << "\n\n";
+
+    std::cout << "Performance:\n";
+    std::cout << "   Throughput  : " << throughput << " events/sec\n";
+    std::cout << "   Time Taken  : " << time_taken << " sec\n\n";
+
+    std::cout << "Top " << top_n_services << " Services:\n";
+    for (int i = 0; i < top_n_services && i < sorted_services.size(); i++) {
+        std::cout << "   " << std::setw(12) << sorted_services[i].first 
+                << " → " << sorted_services[i].second << " events\n";
     }
 
-    std::cout << "Latency Benchmarks:\n";
-    std::cout << "P50 " << p50_latency << "\n";
-    std::cout << "P95 " << p95_latency << "\n";
-    std::cout << "P99 " << p99_latency << "\n";
+    std::cout << "==============================\n\n";
 
     return 0;
 }
