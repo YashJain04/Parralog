@@ -2,6 +2,8 @@
 #include <string>
 #include <fstream>
 #include <chrono>
+#include <limits>
+#include <unordered_map>
 
 int main(int argc, char* argv[]) {
     std::cout << "HPC Analytics Engine\n";
@@ -19,12 +21,18 @@ int main(int argc, char* argv[]) {
     int total_events_processed = 0;
     int total_errors = 0;
     float total_latency = 0;
+    float min_latency = std::numeric_limits<float>::infinity();
+    float max_latency = 0;
     float average_latency = 0;
 
     auto start_time = std::chrono::system_clock::now();
+
+    std::unordered_map<std::string, int> services_frequency;
+
+    std::vector<float> latencies;
     
     while (std::getline(input_file, line)) {
-        std::cout << line << "\n";
+        // std::cout << line << "\n";
 
         std::size_t pos_ts = line.find("\"timestamp\":") + 12;
         std::size_t pos_comma = line.find(",", pos_ts);
@@ -34,6 +42,8 @@ int main(int argc, char* argv[]) {
         pos_comma = line.find(",", pos_service);
         std::string service = line.substr(pos_service, pos_comma - pos_service);
 
+        services_frequency[service] += 1;
+
         std::size_t pos_status = line.find("\"status\":") + 9;
         pos_comma = line.find(",", pos_status);
         int status = std::stoi(line.substr(pos_status, pos_comma - pos_status));
@@ -42,9 +52,19 @@ int main(int argc, char* argv[]) {
         pos_comma = line.find(",", pos_latency);
         float latency = static_cast<float>(std::stod(line.substr(pos_latency, pos_comma - pos_latency)));
 
-        std::cout << "\n--CURRENT EVENT--\n";
-        std::cout << "The timestamp is " << timestamp << "\n";
-        std::cout << "The service is " << service << "\n";
+        latencies.push_back(latency);
+
+        // std::cout << "\n--CURRENT EVENT--\n";
+        // std::cout << "The timestamp is " << timestamp << "\n";
+        // std::cout << "The service is " << service << "\n";
+
+        if (latency < min_latency) {
+            min_latency = latency;
+        }
+
+        if (latency > max_latency) {
+            max_latency = latency;
+        }
 
         total_latency += latency;
         total_errors = (status == 200) ? total_errors : total_errors + 1;
@@ -58,22 +78,54 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    std::sort(latencies.begin(), latencies.end());
+
+    size_t p50_index = static_cast<size_t>(0.50 * latencies.size());
+    float p50_latency = latencies[std::min(p50_index, latencies.size() - 1)];
+
+    size_t p95_index = static_cast<size_t>(0.95 * latencies.size());
+    float p95_latency = latencies[std::min(p95_index, latencies.size() - 1)];
+
+    size_t p99_index = static_cast<size_t>(0.99 * latencies.size());
+    float p99_latency = latencies[std::min(p99_index, latencies.size() - 1)];
+
     average_latency = total_latency / total_events_processed;
 
     auto total_time = end_time - start_time;
     std::chrono::duration<double> seconds = total_time;
     double elapsed = seconds.count();
     double throughput = total_events_processed/elapsed;
+    double time_taken = total_events_processed / throughput;
+    double error_percentage = (static_cast<double>(total_errors) / total_events_processed) * 100.0;
+    
+    std::vector<std::pair<std::string, int>> sorted_services(services_frequency.begin(), services_frequency.end());
+
+    std::sort(sorted_services.begin(), sorted_services.end(),
+        [](auto &a, auto &b) {
+            return a.second > b.second;
+        });
+
+    int top_n_services = 3;
 
     std::cout << "\n--METRICS SUMMARY REPORT--\n";
     std::cout << "Processed " << total_events_processed << " events\n";
     std::cout << "Average latency " << average_latency << " ms\n";
     std::cout << "Throughput " << throughput << " events/sec\n";
-
-    double time_taken = total_events_processed / throughput;
-
+    std::cout << "Total " << total_errors << " errors\n";
+    std::cout << "Error Percentage " << error_percentage << " %\n";
+    std::cout << "Minimum Latency " << min_latency << " ms\n";
+    std::cout << "Maximum Latency " << max_latency << " ms\n";
     std::cout << "Time Taken " << time_taken << " seconds\n";
+    std::cout << "Top Services:\n";
 
+    for (int i { 0 }; i < top_n_services; i++) {
+        std::cout << sorted_services[i].first << " → " << sorted_services[i].second << " events\n";
+    }
+
+    std::cout << "Latency Benchmarks:\n";
+    std::cout << "P50 " << p50_latency << "\n";
+    std::cout << "P95 " << p95_latency << "\n";
+    std::cout << "P99 " << p99_latency << "\n";
 
     return 0;
 }
