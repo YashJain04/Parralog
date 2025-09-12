@@ -39,7 +39,8 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    std::mt19937 random{};
+    std::random_device rd;
+    std::mt19937 random(rd());
     std::uniform_int_distribution<int> services_dist(0, services.size()-1);
     std::uniform_real_distribution<float> latency_dist(5.0, 50);
     std::uniform_int_distribution<int> status_dist(1, 100);
