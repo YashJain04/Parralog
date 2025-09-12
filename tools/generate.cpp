@@ -4,6 +4,7 @@
 #include <chrono>
 #include <vector>
 #include <random>
+#include <iomanip>
 
 int main(int argc, char* argv[]) {
     std::cout << "Log Generator\n";
@@ -62,7 +63,13 @@ int main(int argc, char* argv[]) {
 
         timestamp += 1;
     }
-    
+
+    auto end_time = std::chrono::system_clock::now();
+    auto total_time = end_time - now;
+    std::chrono::duration<double> seconds = total_time;
+    double elapsed = seconds.count();
+
+    std::cout << "Total time taken " << std::fixed << std::setprecision(2) << elapsed << " seconds.\n";
 
     std::cout << "Input file created\n";
     return 0;
