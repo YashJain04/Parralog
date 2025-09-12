@@ -7,6 +7,9 @@
 #include <iomanip>
 
 int main(int argc, char* argv[]) {
+    std::ios::sync_with_stdio(false);
+    std::cin.tie(nullptr);
+
     std::cout << "HPC Analytics Engine\n";
     std::cout << "There are " << argc << " arguments\n";
 
