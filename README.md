@@ -54,3 +54,30 @@ Example workflow:
 The first command generates a telemetry log file. The second command runs the engine on that file.
 
 On macOS the build uses the system’s reported concurrency level to select an appropriate number of threads. This ensures the engine takes advantage of available CPU cores while remaining portable across different hardware.
+
+# Personal Results
+On my personal machine I loads of benchmarks to test scability and the difference seen between single-thread vs multi-threaded computation.
+
+```
+Personal Machine Details:
+Machine: MacBook Pro - 2021 Model - 14 Inch
+CPU: Apple M1 Pro
+Memory: 16 GB RAM
+MacOS: Sequoia 15.6.1
+
+```
+
+## Single-thread vs Multithread
+
+| Events      | Single-thread (time / throughput) | Multithread (time / throughput) |
+| ----------- | --------------------------------- | ------------------------------- |
+| 10          | \~0.00 sec / 24,570 events/sec    | \~0.00 sec / 68,027 events/sec  |
+| 1 million   | 0.52 sec / 1.9M events/sec        | 0.20 sec / 5.0M events/sec      |
+| 100 million | 52.45 sec / 1.9M events/sec       | 22.82 sec / 4.3M events/sec     |
+
+## High Benchmarks
+
+| Events      | Time Taken | Throughput        |
+| ----------- | ---------- | ----------------- |
+| 540 million | 244.46 sec | \~2.2M events/sec |
+| 797 million | 447.30 sec | \~1.8M events/sec |
