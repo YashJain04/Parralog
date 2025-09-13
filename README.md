@@ -64,7 +64,6 @@ Machine: MacBook Pro - 2021 Model - 14 Inch
 CPU: Apple M1 Pro
 Memory: 16 GB RAM
 MacOS: Sequoia 15.6.1
-
 ```
 
 ## Single-thread vs Multithread
@@ -75,9 +74,13 @@ MacOS: Sequoia 15.6.1
 | 1 million   | 0.52 sec / 1.9M events/sec        | 0.20 sec / 5.0M events/sec      |
 | 100 million | 52.45 sec / 1.9M events/sec       | 22.82 sec / 4.3M events/sec     |
 
+-> Checkout the branch `1THREAD` to compute.
+
 ## High Benchmarks
 
 | Events      | Time Taken | Throughput        |
 | ----------- | ---------- | ----------------- |
 | 540 million | 244.46 sec | \~2.2M events/sec |
 | 797 million | 447.30 sec | \~1.8M events/sec |
+
+-> Checkout the branch `main` to compute.
