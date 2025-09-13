@@ -72,15 +72,15 @@ macOS: Sequoia 15.6.1
 
 ## Log Generation Times
 
-| Events      | File Size | Time Taken |
-| ----------- | --------- | ---------- |
-| 10          | <1 MB     | 0.00 sec   |
-| 1 million   | <1 GB     | 0.38 sec   | (Originally 0.47 seconds without buffered batching)
-| 100 million | 8 GB      | 38.55 sec  | (Originally 48.21 seconds without buffered batching)
-| 540 million | 44 GB     | 211.41 sec |
-| 797 million | 65 GB     | 305.04 sec |
+| Events      | File Size | Time Taken (with buffered batching) | Time Taken (without buffered batching) |
+| ----------- | --------- | --------------------------          | -----------------------------          |
+| 10          | <1 MB     | 0.00 sec                            | 0.0 sec                                |
+| 1 million   | <1 GB     | 0.38 sec                            | 0.47 sec                               |
+| 100 million | 8 GB      | 38.55 sec                           | 48.21 sec                              |
+| 540 million | 44 GB     | 211.41 sec                          | N/A                                    |
+| 797 million | 65 GB     | 305.04 sec                          | N/A                                    |
 
-## Parralog Analytics – Single-thread Times
+## Parralog Analytics – Single Thread Times
 
 | Events      | File Size | Time Taken | Throughput        |
 | ----------- | --------- | ---------- | ----------------- |
@@ -88,12 +88,12 @@ macOS: Sequoia 15.6.1
 | 1 million   | <1 GB     | 0.52 sec   | 1.9M events/sec   |
 | 100 million | 8 GB      | 52.45 sec  | 1.9M events/sec   |
 
-## Parralog Analytics – Multithread Times
+## Parralog Analytics – Multi Thread Times
 
-| Events      | File Size | Time Taken | Throughput        |
-| ----------- | --------- | ---------- | ----------------- |
-| 10          | <1 MB     | \~0.00 sec | 68,027 events/sec |
-| 1 million   | <1 GB     | 0.19 sec   | 5.1M events/sec   |
-| 100 million | 8 GB      | 21.55 sec  | 4.6M events/sec   |
-| 540 million | 44 GB     | 221.99 sec | 2.4M events/sec   |
-| 797 million | 65 GB     | 419.44 sec | 1.9M events/sec   |
+| Events      | File Size | Time Taken | Throughput         |
+| ----------- | --------- | ---------- | -----------------  |
+| 10          | <1 MB     | \~0.00 sec | 68,027 events/sec  |
+| 1 million   | <1 GB     | 0.19 sec   | 5.1M events/sec    |
+| 100 million | 8 GB      | 21.55 sec  | 4.6M events/sec    |
+| 540 million | 44 GB     | 221.99 sec | 2.43M events/sec   |
+| 797 million | 65 GB     | 419.44 sec | 1.9M events/sec    |
