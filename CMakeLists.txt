@@ -26,6 +26,7 @@ include_directories(src)
 # executable - analytics engine
 add_executable(hpcae
     src/hpcae/main.cpp
+    src/helpers/thread_pool.cpp
 )
 
 # executable - log generator
