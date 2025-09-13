@@ -4,11 +4,11 @@ The purpose of this project is to learn about high performance computing systems
 
 # Parralog
 
-Parralog is the C++ implementation of a high performance telemetry analytics engine that processes structured event logs at scale. It demonstrates how memory mapping, multithreading, and approximate quantile algorithms can be combined to achieve throughput suitable for large scale telemetry workloads.
+Parralog is the C++ implementation of a high performance computational application that processes structured event logs at scale. It demonstrates how memory mapping, multithreading, and approximate quantile algorithms can be combined to achieve throughput suitable for large scale telemetry workloads.
 
-# Telemetry Engine
+# Telemetry Production Engine
 
-The telemetry engine produces and simulates synthetic telemetry log files in newline-delimited JSON (NDJSON) format. Each entry contains a service identifier, a status code, and a measured latency. These files simulate and randomize high volume telemetry streams and (aimed to) provide realistic input for the Parralog analytics engine. I tried to design the engine to process tens or hundreds of millions of events efficiently on any hardware.
+The telemetry production engine produces and simulates synthetic telemetry log files in newline-delimited JSON (NDJSON) format. Each entry contains a service identifier, a status code, and a measured latency. These files simulate and randomize high volume telemetry streams and (aimed to) provide realistic input for Parralog. I tried to design the production engine to process tens or hundreds of millions of events efficiently on any hardware.
 
 # System Design Diagram
 
@@ -16,25 +16,25 @@ The telemetry engine produces and simulates synthetic telemetry log files in new
 
 ## Multithreading and Parallelism
 
-The engine uses a thread pool to distribute work across all available CPU cores. The input file is divided into chunks aligned to newline boundaries so that each thread can process its region independently. Each thread accumulates results locally, avoiding contention. At the end, results are merged into a single report.
+Parralog uses a thread pool to distribute work across all available CPU cores. The input file is divided into chunks aligned to newline boundaries so that each thread can process its region independently. Each thread accumulates results locally, avoiding contention. At the end, results are merged into a single report.
 
 ## Buffered Batching of Large Writes
 
-The log generator produces synthetic telemetry logs. It uses buffered output so that large amounts of data are flushed to disk in fewer system calls. This reduces I/O overhead and allows the generator to create very large log files quickly.
+The log generator produces synthetic telemetry logs. It uses buffered batching output so that large amounts of data are flushed to disk in fewer system calls. This reduces I/O overhead and allows the generator to create very large log files quickly and done in batches.
 
 ## Memory Mapping
 
-The telemetry engine uses memory mapping to access input files. This allows the operating system to page data into memory on demand, eliminating the need for explicit buffered reads and avoiding the cost of copying data between kernel and user space. This technique scales better to very large files while keeping memory usage efficient.
+Parralog uses memory mapping to access input files. This allows the operating system to page data into memory on demand, eliminating the need for explicit buffered reads and avoiding the cost of copying data between kernel and user space. This technique scales better to very large files while keeping memory usage efficient.
 
 ## Quantile Sketch
 
-The engine uses the P² quantile sketch algorithm to estimate percentiles such as p50, p95, and p99. This algorithm does not require storing and sorting all samples in memory. It runs in constant space and provides accurate approximations of latency distributions at scale.
+Parralog uses the P² quantile sketch algorithm to estimate percentiles such as p50, p95, and p99. This algorithm does not require storing and sorting all samples in memory. It runs in constant space and provides accurate approximations of latency distributions at scale.
 
 Algorithm Inspiration Credits: [https://github.com/FooBarWidget/p2](https://github.com/FooBarWidget/p2)
 
 ## Platform-Concurrency Awareness
 
-The engine queries the system for the number of available hardware threads using `std::thread::hardware_concurrency()`. On macOS this reflects the logical CPU cores available through the system scheduler. This allows the program to scale its thread pool to the hardware it is running on, ensuring efficient utilization of available resources.
+Parralog queries the system for the number of available hardware threads using `std::thread::hardware_concurrency()`. On macOS this reflects the logical CPU cores available through the system scheduler. This allows the program to scale its thread pool to the hardware it is running on, ensuring efficient utilization of available resources.
 
 # Running Instructions
 
@@ -47,7 +47,7 @@ cmake ..
 make
 ```
 
-This will produce two executables. The log generator `telemetry_engine` creates large synthetic telemetry log files. The analytics engine `parralog` processes a given file and prints a metrics summary report.
+This will produce two executables. The log generator `telemetry_engine` creates large synthetic telemetry log files. Then the executable `parralog` processes a given file and prints a metrics summary report.
 
 Example workflow:
 
@@ -56,9 +56,9 @@ Example workflow:
 ./parralog ../data/log_100M.ndjson
 ```
 
-The first command generates a telemetry log file. The second command runs the engine on that file.
+The first command generates a telemetry log file. The second command runs the input file on Pararlog for processing.
 
-On macOS the build uses the system’s reported concurrency level to select an appropriate number of threads. This ensures the engine takes advantage of available CPU cores while remaining portable across different hardware.
+On macOS the build uses the system’s reported concurrency level to select an appropriate number of threads. This ensures that Parralog takes advantage of available CPU cores while remaining portable across different hardware.
 
 # Personal Results
 
@@ -72,13 +72,16 @@ macOS: Sequoia 15.6.1
 
 ## Log Generation Times
 
+- Checkout the branch `1THREAD` to compute single-thread results + no buffered batching.  
+- Checkout the branch `main` to compute multithread results + buffered batching.
+
 | Events      | File Size | Time Taken (with buffered batching) | Time Taken (without buffered batching) |
 | ----------- | --------- | --------------------------          | -----------------------------          |
 | 10          | <1 MB     | 0.00 sec                            | 0.0 sec                                |
 | 1 million   | <1 GB     | 0.38 sec                            | 0.47 sec                               |
-| 100 million | 8 GB      | 38.55 sec                           | 48.21 sec                              |
-| 540 million | 44 GB     | 211.41 sec                          | N/A                                    |
-| 797 million | 65 GB     | 305.04 sec                          | N/A                                    |
+| 100 million | 8.79 GB   | 38.55 sec                           | 48.21 sec                              |
+| 540 million | 47.46 GB  | 211.41 sec                          | N/A                                    |
+| 797 million | 70.05 GB  | 305.04 sec                          | N/A                                    |
 
 ## Parralog Analytics – Single Thread Times
 
@@ -86,7 +89,7 @@ macOS: Sequoia 15.6.1
 | ----------- | --------- | ---------- | ----------------- |
 | 10          | <1 MB     | \~0.00 sec | 24,570 events/sec |
 | 1 million   | <1 GB     | 0.52 sec   | 1.9M events/sec   |
-| 100 million | 8 GB      | 52.45 sec  | 1.9M events/sec   |
+| 100 million | 8.79 GB   | 52.45 sec  | 1.9M events/sec   |
 
 ## Parralog Analytics – Multi Thread Times
 
@@ -94,6 +97,6 @@ macOS: Sequoia 15.6.1
 | ----------- | --------- | ---------- | -----------------  |
 | 10          | <1 MB     | \~0.00 sec | 68,027 events/sec  |
 | 1 million   | <1 GB     | 0.19 sec   | 5.1M events/sec    |
-| 100 million | 8 GB      | 21.55 sec  | 4.6M events/sec    |
-| 540 million | 44 GB     | 221.99 sec | 2.43M events/sec   |
-| 797 million | 65 GB     | 419.44 sec | 1.9M events/sec    |
+| 100 million | 8.79 GB   | 21.55 sec  | 4.6M events/sec    |
+| 540 million | 47.46 GB  | 221.99 sec | 2.43M events/sec   |
+| 797 million | 70.05 GB  | 419.44 sec | 1.93M events/sec   |
