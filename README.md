@@ -24,7 +24,9 @@ The log generator produces synthetic telemetry logs. It uses buffered output so 
 The telemetry engine uses memory mapping to access input files. This allows the operating system to page data into memory on demand, eliminating the need for explicit buffered reads and avoiding the cost of copying data between kernel and user space. This technique scales better to very large files while keeping memory usage efficient.
 
 ## Quantile Sketch
-The engine uses the P² quantile sketch algorithm to estimate percentiles such as p50, p95, and p99. This algorithm does not require storing all samples in memory. It runs in constant space and provides accurate approximations of latency distributions at scale.
+The engine uses the P² quantile sketch algorithm to estimate percentiles such as p50, p95, and p99. This algorithm does not require storing and sorting all samples in memory. It runs in constant space and provides accurate approximations of latency distributions at scale.
+
+Algorithm Inspiration Credits: https://github.com/FooBarWidget/p2
 
 ## Platform-Concurrency Awareness
 The engine queries the system for the number of available hardware threads using `std::thread::hardware_concurrency()`. On macOS this reflects the logical CPU cores available through the system scheduler. This allows the program to scale its thread pool to the hardware it is running on, ensuring efficient utilization of available resources.
@@ -37,16 +39,16 @@ Ensure CMake version 3.16 or later is installed. From the project root create a 
 mkdir build
 cd build
 cmake ..
-make -j$(sysctl -n hw.ncpu)
+make
 ```
 
-This will produce two executables. The log generator `loggen` creates large synthetic telemetry log files. The analytics engine `hpcae` processes a given file and prints a metrics summary report.
+This will produce two executables. The log generator `telemetry_engine` creates large synthetic telemetry log files. The analytics engine `parralog` processes a given file and prints a metrics summary report.
 
 Example workflow:
 
 ```
-./loggen > data.log
-./hpcae data.log
+./telemetry_engine ../data/log_100M.ndjson 100000000
+./parralog ../data/log_100M.ndjson
 ```
 
 The first command generates a telemetry log file. The second command runs the engine on that file.
