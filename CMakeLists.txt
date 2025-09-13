@@ -30,12 +30,12 @@ add_executable(parralog
 )
 
 # executable - log generator
-add_executable(loggen
+add_executable(telemetry_engine
     tools/generate.cpp
 )
 
 # multi-threading using pthreads on non windows machine
 if (NOT MSVC)
   target_link_libraries(parralog PRIVATE pthread)
-  target_link_libraries(loggen PRIVATE pthread)
+  target_link_libraries(telemetry_engine PRIVATE pthread)
 endif()
