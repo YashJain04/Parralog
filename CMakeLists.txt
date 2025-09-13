@@ -24,8 +24,8 @@ endif()
 include_directories(src)
 
 # executable - analytics engine
-add_executable(hpcae
-    src/hpcae/main.cpp
+add_executable(parralog
+    src/parralog/main.cpp
     src/helpers/thread_pool.cpp
 )
 
@@ -36,6 +36,6 @@ add_executable(loggen
 
 # multi-threading using pthreads on non windows machine
 if (NOT MSVC)
-  target_link_libraries(hpcae PRIVATE pthread)
+  target_link_libraries(parralog PRIVATE pthread)
   target_link_libraries(loggen PRIVATE pthread)
 endif()
