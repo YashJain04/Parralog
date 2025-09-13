@@ -68,19 +68,19 @@ MacOS: Sequoia 15.6.1
 
 ## Single-thread vs Multithread
 
-| Events      | Single-thread (time / throughput) | Multithread (time / throughput) |
-| ----------- | --------------------------------- | ------------------------------- |
-| 10          | \~0.00 sec / 24,570 events/sec    | \~0.00 sec / 68,027 events/sec  |
-| 1 million   | 0.52 sec / 1.9M events/sec        | 0.20 sec / 5.0M events/sec      |
-| 100 million | 52.45 sec / 1.9M events/sec       | 22.82 sec / 4.3M events/sec     |
+| Events      | File Size | Single-thread (time / throughput) | Multithread (time / throughput) |
+| ----------- | --------- | --------------------------------- | ------------------------------- |
+| 10          | <1 MB     | \~0.00 sec / 24,570 events/sec    | \~0.00 sec / 68,027 events/sec  |
+| 1 million   | <1 GB     | 0.52 sec / 1.9M events/sec        | 0.20 sec / 5.0M events/sec      |
+| 100 million | 8 GB      | 52.45 sec / 1.9M events/sec       | 22.82 sec / 4.3M events/sec     |
 
 -> Checkout the branch `1THREAD` to compute.
 
 ## High Benchmarks
 
-| Events      | Time Taken | Throughput        |
-| ----------- | ---------- | ----------------- |
-| 540 million | 244.46 sec | \~2.2M events/sec |
-| 797 million | 447.30 sec | \~1.8M events/sec |
+| Events      | File Size | Time Taken | Throughput        |
+| ----------- | --------- | ---------- | ----------------- |
+| 540 million | 44 GB     | 244.46 sec | \~2.2M events/sec |
+| 797 million | 65 GB     | 447.30 sec | \~1.8M events/sec |
 
 -> Checkout the branch `main` to compute.
