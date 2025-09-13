@@ -13,6 +13,7 @@
 #include "helpers/p2_quantile_sketch.h"
 #include "helpers/thread_pool.h"
 
+// partial result per thread (avoid resource sharing to prevent race conditions)
 struct PartialResult {
     int events_processed = 0;
     int errors = 0;
@@ -30,7 +31,7 @@ int main(int argc, char* argv[]) {
     std::ios::sync_with_stdio(false);
     std::cin.tie(nullptr);
 
-    std::cout << "HPC Analytics Engine\n";
+    std::cout << "Parralog\n";
     std::cout << "There are " << argc << " arguments\n";
 
     if (argc < 2) {
@@ -38,12 +39,14 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    // for memory mapping
     int file_descriptor = open(argv[1], O_RDONLY);
     if (file_descriptor == -1) {
         std::cerr << "Error reading file descriptor.\n";
         return 1;
     }
 
+    // gather file metadata
     struct stat metadata;
     if (fstat(file_descriptor, &metadata) == -1) {
         std::cerr << "Error retrieving metadata with fstat.\n";
@@ -51,6 +54,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    // create memory map
     char* map = static_cast<char*>(
         mmap(nullptr, metadata.st_size, PROT_READ, MAP_PRIVATE, file_descriptor, 0)
     );
@@ -60,19 +64,22 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    // get # of available hardware threads (logical CPU cores available for Parralog)
     unsigned int num_threads = std::thread::hardware_concurrency();
 
+    // default back to 4
     if (num_threads == 0) {
         num_threads = 4;
     }
 
     auto start_time = std::chrono::system_clock::now();
-    ThreadPool pool(num_threads);
+    ThreadPool pool(num_threads); // instantiate a custom thread pool
     std::vector<std::future<PartialResult>> futures;
 
     size_t chunk_size = metadata.st_size / num_threads;
     std::vector<std::pair<size_t, size_t>> offsets;
 
+    // set ranges - align chunks
     for (size_t i {0}; i < num_threads; i++) {
         size_t start = i * chunk_size;
         size_t end = (i == num_threads - 1) ? metadata.st_size : (i + 1) * chunk_size;
@@ -94,6 +101,7 @@ int main(int argc, char* argv[]) {
         offsets.push_back({start, end});
     }
 
+    // give a task to a thread
     for (auto& [start, end] : offsets) {
         futures.push_back(
             pool.enqueue([map, start, end]() {
@@ -149,6 +157,7 @@ int main(int argc, char* argv[]) {
         );
     }
 
+    // hold all partial results
     std::vector<PartialResult> results;
     for (auto& fut : futures) {
         results.push_back(fut.get());
@@ -163,6 +172,7 @@ int main(int argc, char* argv[]) {
     std::unordered_map<std::string, int> services_frequency;
     P2QuantileSketch p50(0.5), p95(0.95), p99(0.99);
 
+    // aggregate partial results and merge
     for (auto& thread_result : results) {
         total_events_processed += thread_result.events_processed;
         total_errors += thread_result.errors;
@@ -198,6 +208,7 @@ int main(int argc, char* argv[]) {
     double throughput = total_events_processed / elapsed;
     double error_percentage = (static_cast<double>(total_errors) / total_events_processed) * 100.0;
 
+    // sort services to retrieve most frequent
     std::vector<std::pair<std::string, int>> sorted_services(
         services_frequency.begin(), services_frequency.end()
     );
@@ -234,6 +245,7 @@ int main(int argc, char* argv[]) {
 
     std::cout << "==============================\n\n";
 
+    // close and unmap to avoid resource leakage
     munmap(map, metadata.st_size);
     close(file_descriptor);
     return 0;

@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <algorithm>
 
+// custom p^2 algorithm by Jain and Chlamtac to calculate percentiles in constant space
 class P2QuantileSketch {
 public:
     explicit P2QuantileSketch(double quantile) : quantile(quantile) {}

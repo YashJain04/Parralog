@@ -7,7 +7,7 @@
 #include <iomanip>
 
 int main(int argc, char* argv[]) {
-    std::cout << "Log Generator\n";
+    std::cout << "Telemetry Engine\n";
     std::cout << "There are " << argc << " arguments\n";
     
     std::ofstream output_file { argv[1] };
@@ -28,6 +28,7 @@ int main(int argc, char* argv[]) {
 
     std::vector <std::string> services;
 
+    // create 100 services
     for (int count { 1 }; count < 101; count++) {
         if (count < 10) {
             services.push_back("service_00" + std::to_string(count));
@@ -42,12 +43,14 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    // create a random distribution to randomize services + latencies + statuses
     std::random_device rd;
     std::mt19937 random(rd());
     std::uniform_int_distribution<int> services_dist(0, services.size()-1);
     std::uniform_real_distribution<float> latency_dist(5.0, 50);
     std::uniform_int_distribution<int> status_dist(1, 100);
 
+    // use buffered batching of size 1024
     const int BUFFER_SIZE = 1024;
     std::string buffer[BUFFER_SIZE];
     int buffer_index = 0;
@@ -61,12 +64,14 @@ int main(int argc, char* argv[]) {
         int roll = status_dist(random);
         int status = (roll <= 95) ? 200 : 500;
 
+        // load entry as a record
         std::string record = "{\"timestamp\":" + std::to_string(timestamp)
             + ",\"service\":\"" + service + "\""
             + ",\"status\":" + std::to_string(status)
             + ",\"latency_ms\":" + std::to_string(latency)
             + "}\n";
 
+        // if buffer is full, write to output file and flush
         if (buffer_index >= BUFFER_SIZE) {    
             for (int c { 0 }; c < BUFFER_SIZE; c++) {
                 output_file.write(buffer[c].c_str(), buffer[c].size());
@@ -75,8 +80,10 @@ int main(int argc, char* argv[]) {
             buffer_index = 0;
         }
 
+        // record entry in buffer
         buffer[buffer_index] = record;
 
+        // write the remaining records/entries to output file (in case we are on the last entry and buffer still has remaining records)
         if (count == events - 1) {
             for (int c { 0 }; c < buffer_index + 1; c++) {
                 output_file.write(buffer[c].c_str(), buffer[c].size());

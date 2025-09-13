@@ -10,7 +10,9 @@ Parralog is the C++ implementation of a high performance computational applicati
 
 The telemetry production engine produces and simulates synthetic telemetry log files in newline-delimited JSON (NDJSON) format. Each entry contains a service identifier, a status code, and a measured latency. These files simulate and randomize high volume telemetry streams and (aimed to) provide realistic input for Parralog. I tried to design the production engine to process tens or hundreds of millions of events efficiently on any hardware.
 
-# System Design Diagram
+# System Design (Architecture)
+
+![Architecture](architecture.png)
 
 # Optimization Strategies
 
@@ -81,7 +83,7 @@ macOS: Sequoia 15.6.1
 | 1 million   | <1 GB     | 0.38 sec                            | 0.47 sec                               |
 | 100 million | 8.79 GB   | 38.55 sec                           | 48.21 sec                              |
 | 540 million | 47.46 GB  | 211.41 sec                          | N/A                                    |
-| 797 million | 70.05 GB  | 305.04 sec                          | N/A                                    |
+| 797 million | 65.24 GB  | 309.71 sec                          | N/A                                    |
 
 ## Parralog Analytics – Single Thread Times
 
@@ -99,4 +101,9 @@ macOS: Sequoia 15.6.1
 | 1 million   | <1 GB     | 0.19 sec   | 5.1M events/sec    |
 | 100 million | 8.79 GB   | 21.55 sec  | 4.6M events/sec    |
 | 540 million | 47.46 GB  | 221.99 sec | 2.43M events/sec   |
-| 797 million | 70.05 GB  | 419.44 sec | 1.93M events/sec   |
+| 797 million | 65.24 GB  | 413.87 sec | 1.93M events/sec   |
+
+# Future Improvements
+
+- Integrating `telemetry_engine` with AWS for file storage on S3 (avoid saving large files on host/local machine)
+- Integrating `parralog` with AWS for distributed processing on an EC2 instance (avoid using host/local machine for processing)

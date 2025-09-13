@@ -26,6 +26,7 @@ private:
     bool stop;
 };
 
+// job submission function and save result in future to get result later
 template <class F, class... Args>
 auto ThreadPool::enqueue(F&& f, Args&&... args)
     -> std::future<typename std::invoke_result<F, Args...>::type>

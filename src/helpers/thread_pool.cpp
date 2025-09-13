@@ -1,5 +1,7 @@
 #include "thread_pool.h"
 
+// spin up worker threads that wait until task is available for execution
+// thread will exit if queue is empty
 ThreadPool::ThreadPool(size_t numThreads) : stop(false) {
     for (size_t i = 0; i < numThreads; ++i) {
         workers.emplace_back([this] {
@@ -21,6 +23,7 @@ ThreadPool::ThreadPool(size_t numThreads) : stop(false) {
     }
 }
 
+// destructor
 ThreadPool::~ThreadPool() {
     {
         std::unique_lock<std::mutex> lock(queueMutex);
