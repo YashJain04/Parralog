@@ -15,20 +15,25 @@ The telemetry engine produces and simulates synthetic telemetry log files in new
 # Optimization Strategies
 
 ## Multithreading and Parallelism
+
 The engine uses a thread pool to distribute work across all available CPU cores. The input file is divided into chunks aligned to newline boundaries so that each thread can process its region independently. Each thread accumulates results locally, avoiding contention. At the end, results are merged into a single report.
 
 ## Buffered Batching of Large Writes
+
 The log generator produces synthetic telemetry logs. It uses buffered output so that large amounts of data are flushed to disk in fewer system calls. This reduces I/O overhead and allows the generator to create very large log files quickly.
 
 ## Memory Mapping
+
 The telemetry engine uses memory mapping to access input files. This allows the operating system to page data into memory on demand, eliminating the need for explicit buffered reads and avoiding the cost of copying data between kernel and user space. This technique scales better to very large files while keeping memory usage efficient.
 
 ## Quantile Sketch
+
 The engine uses the P² quantile sketch algorithm to estimate percentiles such as p50, p95, and p99. This algorithm does not require storing and sorting all samples in memory. It runs in constant space and provides accurate approximations of latency distributions at scale.
 
-Algorithm Inspiration Credits: https://github.com/FooBarWidget/p2
+Algorithm Inspiration Credits: [https://github.com/FooBarWidget/p2](https://github.com/FooBarWidget/p2)
 
 ## Platform-Concurrency Awareness
+
 The engine queries the system for the number of available hardware threads using `std::thread::hardware_concurrency()`. On macOS this reflects the logical CPU cores available through the system scheduler. This allows the program to scale its thread pool to the hardware it is running on, ensuring efficient utilization of available resources.
 
 # Running Instructions
@@ -56,31 +61,39 @@ The first command generates a telemetry log file. The second command runs the en
 On macOS the build uses the system’s reported concurrency level to select an appropriate number of threads. This ensures the engine takes advantage of available CPU cores while remaining portable across different hardware.
 
 # Personal Results
-On my personal machine I loads of benchmarks to test scability and the difference seen between single-thread vs multi-threaded computation.
 
 ```
 Personal Machine Details:
 Machine: MacBook Pro - 2021 Model - 14 Inch
 CPU: Apple M1 Pro
 Memory: 16 GB RAM
-MacOS: Sequoia 15.6.1
+macOS: Sequoia 15.6.1
 ```
 
-## Single-thread vs Multithread
+## Log Generation Times
 
-| Events      | File Size | Single-thread (time / throughput) | Multithread (time / throughput) |
-| ----------- | --------- | --------------------------------- | ------------------------------- |
-| 10          | <1 MB     | \~0.00 sec / 24,570 events/sec    | \~0.00 sec / 68,027 events/sec  |
-| 1 million   | <1 GB     | 0.52 sec / 1.9M events/sec        | 0.20 sec / 5.0M events/sec      |
-| 100 million | 8 GB      | 52.45 sec / 1.9M events/sec       | 22.82 sec / 4.3M events/sec     |
+| Events      | File Size | Time Taken |
+| ----------- | --------- | ---------- |
+| 10          | <1 MB     | 0.00 sec   |
+| 1 million   | <1 GB     | 0.38 sec   | (Originally 0.47 seconds without buffered batching)
+| 100 million | 8 GB      | 38.55 sec  | (Originally 48.21 seconds without buffered batching)
+| 540 million | 44 GB     | 211.41 sec |
+| 797 million | 65 GB     | 305.04 sec |
 
--> Checkout the branch `1THREAD` to compute.
-
-## High Benchmarks
+## Parralog Analytics – Single-thread Times
 
 | Events      | File Size | Time Taken | Throughput        |
 | ----------- | --------- | ---------- | ----------------- |
-| 540 million | 44 GB     | 244.46 sec | \~2.2M events/sec |
-| 797 million | 65 GB     | 447.30 sec | \~1.8M events/sec |
+| 10          | <1 MB     | \~0.00 sec | 24,570 events/sec |
+| 1 million   | <1 GB     | 0.52 sec   | 1.9M events/sec   |
+| 100 million | 8 GB      | 52.45 sec  | 1.9M events/sec   |
 
--> Checkout the branch `main` to compute.
+## Parralog Analytics – Multithread Times
+
+| Events      | File Size | Time Taken | Throughput        |
+| ----------- | --------- | ---------- | ----------------- |
+| 10          | <1 MB     | \~0.00 sec | 68,027 events/sec |
+| 1 million   | <1 GB     | 0.19 sec   | 5.1M events/sec   |
+| 100 million | 8 GB      | 21.55 sec  | 4.6M events/sec   |
+| 540 million | 44 GB     | 221.99 sec | 2.4M events/sec   |
+| 797 million | 65 GB     | 419.44 sec | 1.9M events/sec   |
